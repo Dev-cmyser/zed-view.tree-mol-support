@@ -1,4 +1,4 @@
 name = "View Tree ($mol)"
 grammar = "viewtree"
-path_suffixes = ["*.view.tree"]
+path_suffixes = ["view.tree"]
 line_comments = ["# "]
