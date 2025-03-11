@@ -1,0 +1,4 @@
+name = "Tree ($mol)"
+grammar = "tree"
+path_suffixes = [".tree"]
+line_comments = ["# "]

@@ -1,0 +1,9 @@
+id = "tree-syntax"
+name = "Tree Syntax Highlighting"
+version = "0.0.1"
+schema_version = 1
+authors = ["Kirill Novgorodtsev kirrallt@mail.ru"]
+description = "Syntax higlighting for .tree files in $mol web framework"
+repository = "https://github.com/dev-cmyser/zed-tree-syntax"
+
+[grammars.tree]
