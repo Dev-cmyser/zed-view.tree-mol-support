@@ -8,4 +8,4 @@ repository = "https://github.com/dev-cmyser/zed-tree-mol-support"
 
 [grammars.gleam]
 repository = "https://github.com/Dev-cmyser/tree-sitter-mol-view-tree"
-rev = "d63611f59d79926d908db2e2ed20f7d83fcd5e03"
+rev = "ee1dd85b8217080964eaa5b25823f1fb1915bbf3"
