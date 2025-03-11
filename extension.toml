@@ -7,5 +7,5 @@ description = "Syntax higlighting for .tree files in $mol web framework"
 repository = "https://github.com/dev-cmyser/zed-tree-mol-support"
 
 [grammars.gleam]
-repository = "https://github.com/gleam-lang/tree-sitter-gleam"
-rev = "58b7cac8fc14c92b0677c542610d8738c373fa81"
+repository = "https://github.com/Dev-cmyser/zed-tree-mol-support.git"
+rev = "ceb6737d6e9e7c981685f9a0ac015324099ceb58"
