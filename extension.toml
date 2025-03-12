@@ -8,4 +8,4 @@ repository = "https://github.com/dev-cmyser/zed-tree-mol-support"
 
 [grammars.viewtree]
 repository = "https://github.com/Dev-cmyser/tree-sitter-mol-view-tree"
-commit = "0be06f746bdb479d4966d225a8f882ca71f299c4"
+commit = "e1294418e1b06a9c94a794b2159a2cb5bbfdad2c"
