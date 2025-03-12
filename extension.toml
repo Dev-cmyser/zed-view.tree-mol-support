@@ -1,6 +1,6 @@
 id = "viewtree"
 name = "View Tree Syntax Highlighting for $mol"
-version = "0.0.2"
+version = "0.0.3"
 schema_version = 1
 authors = ["Kirill Novgorodtsev kirrallt@mail.ru"]
 description = "Syntax higlighting for view.tree files in $mol web framework"
