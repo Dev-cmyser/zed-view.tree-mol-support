@@ -1,0 +1,6 @@
+((identifier) @function (#match? @function "^\\$"))
+((binding) @operator)
+((string_literal) @string)
+((localization_marker) @punctuation.special)
+((list_marker) @punctuation.special)
+((dict_marker) @punctuation.special)
