@@ -1,9 +1,9 @@
 id = "viewtree"
-name = "View Tree Syntax Highlighting for $mol"
-version = "0.0.3"
+name = "View Tree Language Support for $mol"
+version = "0.1.0"
 schema_version = 1
 authors = ["Kirill Novgorodtsev kirrallt@mail.ru"]
-description = "Syntax higlighting for view.tree files in $mol web framework"
+description = "Complete language support for view.tree files in $mol web framework with intelligent autocompletion"
 repository = "https://github.com/dev-cmyser/zed-tree-mol-support"
 
 [grammars.molviewtree]
