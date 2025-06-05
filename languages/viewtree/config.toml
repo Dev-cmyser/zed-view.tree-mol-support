@@ -1,3 +1,0 @@
-name = "View Tree ($mol)"
-grammar = "molviewtree"
-path_suffixes = ["tree"]
