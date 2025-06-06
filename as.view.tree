@@ -1,1 +1,20 @@
-$mol_sdf
+$horrorgamelanding_subscribe $mol_card
+	title @ \Subscribe
+	content /
+		<= Form $mol_form
+			body /
+				<= Email_field $mol_form_field
+					name @ \E-mail
+					bid <= email_bid \
+					Content <= Email_control $mol_string
+						hint @ \Enter your email to subscribe
+						value? <=> email? \
+			submit? <=> submit? null
+			submit_allowed => submit_allowed
+			buttons /
+				<= Submit $mol_button_major
+					title @ \Subscribe
+					click? <=> submit? null
+					enabled <= submit_allowed
+				<= Message $mol_status
+					message <= message? \
