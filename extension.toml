@@ -13,9 +13,3 @@ commit = "4796ac4013436acb73c1a36a0537a0b105cd9c2a"
 [language_servers.view-tree-lsp]
 name = "ViewTree LSP"
 languages = ["ViewTree ($mol)"]
-
-[languages.viewtree]
-name = "ViewTree ($mol)" 
-grammar = "molviewtree"
-path_suffixes = ["tree"]
-language_servers = ["view-tree-lsp"]
