@@ -90,7 +90,7 @@ impl ViewTreeLSPExtension {
 
         // Download Go binary release from GitHub
         let source_tarball_url = format!(
-            "https://github.com/Dev-cmyser/lsp-view.tree/releases/download/v1.0.2/lsp-go-binary.tar.gz",
+            "https://github.com/Dev-cmyser/lsp-view.tree/releases/download/v1.0.3/lsp-go-binary.tar.gz",
         );
 
         eprintln!("LSP Debug: Downloading from URL: {}", source_tarball_url);
@@ -108,7 +108,7 @@ impl ViewTreeLSPExtension {
         );
 
         // After extraction by Zed, the directory structure is: lsp-go-binary/
-        let source_dir = "lsp-go-binary";
+        let source_dir = "lsp-go-binary.tar.gz";
 
         // Create absolute path to the Go binary
         let current_dir =
@@ -168,7 +168,7 @@ impl zed::Extension for ViewTreeLSPExtension {
 
         Ok(zed::Command {
             command: binary.path,
-            args: binary.args.unwrap_or_else(|| vec!["--stdio".to_string()]),
+            args: binary.args.unwrap_or_else(|| vec![]),
             env: Default::default(),
         })
     }
