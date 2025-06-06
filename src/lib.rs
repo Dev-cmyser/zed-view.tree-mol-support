@@ -108,7 +108,7 @@ impl ViewTreeLSPExtension {
         );
 
         // After extraction by Zed, the directory structure is: lsp-go-binary/
-        let source_dir = "lsp-go-binary.tar.gz";
+        let source_dir = "lsp-go-binary.tar.gz/lsp-go-binary";
 
         // Create absolute path to the Go binary
         let current_dir =
