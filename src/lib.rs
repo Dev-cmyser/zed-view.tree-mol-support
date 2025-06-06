@@ -95,26 +95,8 @@ impl ViewTreeLSPExtension {
                 &zed::LanguageServerInstallationStatus::Downloading,
             );
 
-            // Run npm install and build in the source directory
-            let npm_install_status = std::process::Command::new("npm")
-                .args(&["install"])
-                .current_dir(&source_dir)
-                .status()
-                .map_err(|err| format!("failed to run npm install: {err}"))?;
-
-            if !npm_install_status.success() {
-                return Err("npm install failed".into());
-            }
-
-            let npm_build_status = std::process::Command::new("npm")
-                .args(&["run", "build"])
-                .current_dir(&source_dir)
-                .status()
-                .map_err(|err| format!("failed to run npm build: {err}"))?;
-
-            if !npm_build_status.success() {
-                return Err("npm run build failed".into());
-            }
+            // Use pre-built server from the downloaded source
+            // The LSP server lib/ directory should already be built
 
             // Clean up old versions
             let entries = fs::read_dir(".")
