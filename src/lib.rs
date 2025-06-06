@@ -37,7 +37,6 @@ impl ViewTreeLSPExtension {
 
         // If the Go binary is available in PATH, use that
         if let Some(path) = worktree.which(EXECUTABLE_NAME) {
-            eprintln!("view.tree LSP: Using system binary at {}", path);
             return Ok(ViewTreeBinary {
                 path,
                 args: binary_args,
@@ -56,20 +55,16 @@ impl ViewTreeLSPExtension {
                         None
                     }
                 });
-            
+
             if let Some(binary_path) = cached_binary {
-                eprintln!("view.tree LSP: Using cached binary at {}", binary_path);
                 return Ok(ViewTreeBinary {
                     path: binary_path,
                     args: binary_args,
                 });
             } else {
-                eprintln!("view.tree LSP: Cached binary no longer exists, will re-download");
                 self.cached_binary_path = None;
             }
         }
-
-        eprintln!("view.tree LSP: Starting download of Go LSP server {}", LSP_VERSION);
 
         zed::set_language_server_installation_status(
             language_server_id,
@@ -83,8 +78,6 @@ impl ViewTreeLSPExtension {
 
         // Download Go binary release from GitHub
         let source_tarball_url = "https://github.com/Dev-cmyser/lsp-view.tree/releases/download/v1.0.1/lsp-go-binary.tar.gz".to_string();
-
-        eprintln!("view.tree LSP: Downloading from URL: {}", source_tarball_url);
 
         zed::set_language_server_installation_status(
             language_server_id,
@@ -108,61 +101,45 @@ impl ViewTreeLSPExtension {
             "lsp-go-binary.tar.gz",
             zed::DownloadedFileType::GzipTar,
         )
-        .map_err(|err| {
-            eprintln!("view.tree LSP: Download failed: {}", err);
-            format!("Failed to download view.tree LSP server from {}: {}", source_tarball_url, err)
-        })?;
+        .map_err(|err| format!("Failed to download view.tree LSP server: {}", err))?;
 
         zed::set_language_server_installation_status(
             language_server_id,
             &zed::LanguageServerInstallationStatus::None,
         );
 
-        eprintln!("view.tree LSP: Download and extraction completed successfully");
-
         // After extraction by Zed, the directory structure is: lsp-go-binary.tar.gz/
         let source_dir = "lsp-go-binary.tar.gz";
 
         // Create absolute path to the Go binary
-        let current_dir = std::env::current_dir()
-            .map_err(|e| format!("Cannot get current directory: {}", e))?;
+        let current_dir =
+            std::env::current_dir().map_err(|e| format!("Cannot get current directory: {}", e))?;
         let final_binary_path = current_dir.join(&source_dir).join(EXECUTABLE_NAME);
         let final_binary_path_str = final_binary_path.to_string_lossy().to_string();
 
         // Check if the Go binary exists and make it executable
         match std::fs::metadata(&final_binary_path) {
             Ok(metadata) => {
-                eprintln!("view.tree LSP: Binary found at {}, size: {} bytes", 
-                    final_binary_path_str, metadata.len());
-                
                 // Make binary executable on Unix systems
                 #[cfg(unix)]
                 {
                     use std::os::unix::fs::PermissionsExt;
                     let mut perms = metadata.permissions();
                     perms.set_mode(0o755);
-                    if let Err(e) = std::fs::set_permissions(&final_binary_path, perms) {
-                        eprintln!("view.tree LSP: Warning - failed to set executable permissions: {}", e);
-                    }
+                    std::fs::set_permissions(&final_binary_path, perms)
+                        .map_err(|e| format!("Cannot set executable permissions: {}", e))?;
                 }
                 
                 // Cache the successful path
                 self.cached_binary_path = Some(source_dir.to_string());
 
-                eprintln!("view.tree LSP: Successfully configured Go LSP server");
                 Ok(ViewTreeBinary {
                     path: final_binary_path_str,
                     args: binary_args,
                 })
-            },
-            Err(err) => {
-                let error_msg = format!(
-                    "view.tree LSP: Binary not found at expected location '{}': {}. \
-                    Please check that the release contains the correct binary.",
-                    final_binary_path_str, err
-                );
-                eprintln!("{}", error_msg);
-                Err(error_msg)
+            }
+            Err(_) => {
+                Err(format!("LSP binary not found at: {}. Please check the release archive contains the binary.", final_binary_path_str))
             }
         }
     }
@@ -181,15 +158,18 @@ impl zed::Extension for ViewTreeLSPExtension {
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
         let binary = self.language_server_binary(language_server_id, worktree)?;
-        
-        eprintln!("view.tree LSP: Starting server with command: {}", binary.path);
+
+        eprintln!(
+            "view.tree LSP: Starting server with command: {}",
+            binary.path
+        );
         if let Some(ref args) = binary.args {
             eprintln!("view.tree LSP: Arguments: {:?}", args);
         }
-        
+
         Ok(zed::Command {
             command: binary.path,
-            args: binary.args.unwrap_or_default(),
+            args: binary.args.unwrap_or_else(|| vec!["--stdio".to_string()]),
             env: Default::default(),
         })
     }
