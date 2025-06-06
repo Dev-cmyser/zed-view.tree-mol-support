@@ -14,6 +14,7 @@ impl ViewTreeLSPExtension {
         _language_server_id: &LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<ViewTreeBinary> {
+        eprintln!("[ViewTree LSP] Starting language_server_binary function");
         let binary_settings = LspSettings::for_worktree("view-tree-lsp", worktree)
             .ok()
             .and_then(|lsp_settings| lsp_settings.binary);
@@ -29,10 +30,17 @@ impl ViewTreeLSPExtension {
             });
         }
 
-        // Check if Node.js is available
-        if worktree.which("node").is_none() {
-            return Err("Node.js is required to run the View.Tree LSP server. Please install Node.js.".into());
-        }
+        // Find Node.js executable, including NVM installations
+        let node_path = if let Some(path) = worktree.which("node") {
+            eprintln!("[ViewTree LSP] Found node at: {}", path);
+            path
+        } else {
+            eprintln!("[ViewTree LSP] Node not found via worktree.which, using fallback");
+            // For now, just use "node" and let the system PATH resolve it
+            // This should work for most installations including NVM
+            "node".to_string()
+        };
+        eprintln!("[ViewTree LSP] Using node path: {}", node_path);
 
         // Try to find the LSP server in common locations
         let server_paths = vec![
@@ -41,17 +49,20 @@ impl ViewTreeLSPExtension {
             "./lsp-view.tree/lib/server.js",
         ];
 
+        eprintln!("[ViewTree LSP] Trying server paths: {:?}", server_paths);
         for server_path in server_paths {
-            // For now, just try the path and let Node.js handle the error if file doesn't exist
+            eprintln!("[ViewTree LSP] Attempting to use server path: {}", server_path);
+            // Use the found Node.js path
             return Ok(ViewTreeBinary {
-                path: "node".to_string(),
+                path: node_path.clone(),
                 args: Some(vec![server_path.to_string(), "--stdio".to_string()]),
             });
         }
 
         // Fallback: just try to run with a default path
+        eprintln!("[ViewTree LSP] Using fallback path");
         Ok(ViewTreeBinary {
-            path: "node".to_string(),
+            path: node_path,
             args: Some(vec!["lsp-view.tree/lib/server.js".to_string(), "--stdio".to_string()]),
         })
     }
@@ -67,12 +78,15 @@ impl zed::Extension for ViewTreeLSPExtension {
         language_server_id: &LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
+        eprintln!("[ViewTree LSP] language_server_command called");
         let binary = self.language_server_binary(language_server_id, worktree)?;
-        Ok(zed::Command {
-            command: binary.path,
-            args: binary.args.unwrap_or_else(|| vec!["--stdio".to_string()]),
+        let command = zed::Command {
+            command: binary.path.clone(),
+            args: binary.args.clone().unwrap_or_else(|| vec!["--stdio".to_string()]),
             env: Default::default(),
-        })
+        };
+        eprintln!("[ViewTree LSP] Final command: {} with args: {:?}", binary.path, binary.args);
+        Ok(command)
     }
 }
 
