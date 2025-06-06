@@ -1,19 +1,12 @@
-use std::fs;
 use zed_extension_api::settings::LspSettings;
 use zed_extension_api::{self as zed, LanguageServerId, Result};
-
-// Constants for the View.Tree LSP
-const VIEW_TREE_LSP_GITHUB_REPO: &str = "Dev-cmyser/lsp-view.tree";
-const SERVER_PATH: &str = "lib/server.js";
 
 struct ViewTreeBinary {
     path: String,
     args: Option<Vec<String>>,
 }
 
-struct ViewTreeLSPExtension {
-    cached_binary_path: Option<String>,
-}
+struct ViewTreeLSPExtension;
 
 impl ViewTreeLSPExtension {
     fn language_server_binary(
@@ -66,9 +59,7 @@ impl ViewTreeLSPExtension {
 
 impl zed::Extension for ViewTreeLSPExtension {
     fn new() -> Self {
-        Self {
-            cached_binary_path: None,
-        }
+        Self
     }
 
     fn language_server_command(
