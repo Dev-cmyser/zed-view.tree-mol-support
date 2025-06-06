@@ -80,10 +80,9 @@ impl ViewTreeLSPExtension {
             );
 
             // Download and extract the source code
-            let tarball_path = format!("{}/source.tar.gz", version_dir);
             zed::download_file(
                 &source_tarball_url,
-                &tarball_path,
+                &version_dir,
                 zed::DownloadedFileType::GzipTar,
             )
             .map_err(|err| format!("failed to download source: {err}"))?;
