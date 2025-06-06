@@ -81,11 +81,34 @@ impl ViewTreeLSPExtension {
         )
         .map_err(|err| format!("failed to download source: {err}"))?;
 
+        // Debug: Check current working directory and files
+        if let Ok(current_dir) = std::env::current_dir() {
+            eprintln!("LSP Debug: Current working directory: {:?}", current_dir);
+        }
+        
+        // List files in current directory
+        if let Ok(entries) = std::fs::read_dir(".") {
+            eprintln!("LSP Debug: Files in current directory:");
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    eprintln!("LSP Debug: - {:?}", entry.file_name());
+                }
+            }
+        }
+
         // After extraction, the directory structure should be: lsp-view.tree-main/
         let source_dir = "lsp-view.tree-main";
+        let final_server_path = format!("{}/lib/server.js", source_dir);
+        
+        eprintln!("LSP Debug: Looking for server at: {}", final_server_path);
+        
+        // Check if the server file exists
+        match std::fs::metadata(&final_server_path) {
+            Ok(metadata) => eprintln!("LSP Debug: Server file found, size: {} bytes", metadata.len()),
+            Err(err) => eprintln!("LSP Debug: Server file not found: {}", err),
+        }
 
         self.cached_binary_path = Some(source_dir.to_string());
-        let final_server_path = format!("{}/lib/server.js", source_dir);
 
         Ok(ViewTreeBinary {
             path: node_path,
