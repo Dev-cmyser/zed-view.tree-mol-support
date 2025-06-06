@@ -73,32 +73,56 @@ impl ViewTreeLSPExtension {
             },
         )?;
 
-        let asset_name = format!("lsp-view.tree-{}.tar.gz", release.version);
-
-        let asset = release
-            .assets
-            .iter()
-            .find(|asset| asset.name == asset_name)
-            .ok_or_else(|| format!("no asset found matching {:?}", asset_name))?;
+        // Use source code tarball URL from GitHub
+        let source_tarball_url = format!("https://github.com/{}/archive/refs/tags/v{}.tar.gz", VIEW_TREE_LSP_GITHUB_REPO, release.version);
 
         let version_dir = format!("view-tree-lsp-{}", release.version);
+        let source_dir = format!("{}/lsp-view.tree-{}", version_dir, release.version);
         fs::create_dir_all(&version_dir)
             .map_err(|err| format!("failed to create directory '{version_dir}': {err}"))?;
 
-        let server_path = format!("{}/lib/server.js", version_dir);
+        let server_path = format!("{}/lib/server.js", source_dir);
         if !fs::metadata(&server_path).map_or(false, |stat| stat.is_file()) {
             zed::set_language_server_installation_status(
                 language_server_id,
                 &zed::LanguageServerInstallationStatus::Downloading,
             );
 
-            // Download and extract the server
+            // Download and extract the source code
+            let tarball_path = format!("{}/source.tar.gz", version_dir);
             zed::download_file(
-                &asset.download_url,
-                &version_dir,
+                &source_tarball_url,
+                &tarball_path,
                 zed::DownloadedFileType::GzipTar,
             )
-            .map_err(|err| format!("failed to download file: {err}"))?;
+            .map_err(|err| format!("failed to download source: {err}"))?;
+
+            // Build the LSP server
+            zed::set_language_server_installation_status(
+                language_server_id,
+                &zed::LanguageServerInstallationStatus::Downloading,
+            );
+
+            // Run npm install and build in the source directory
+            let npm_install_status = std::process::Command::new("npm")
+                .args(&["install"])
+                .current_dir(&source_dir)
+                .status()
+                .map_err(|err| format!("failed to run npm install: {err}"))?;
+
+            if !npm_install_status.success() {
+                return Err("npm install failed".into());
+            }
+
+            let npm_build_status = std::process::Command::new("npm")
+                .args(&["run", "build"])
+                .current_dir(&source_dir)
+                .status()
+                .map_err(|err| format!("failed to run npm build: {err}"))?;
+
+            if !npm_build_status.success() {
+                return Err("npm run build failed".into());
+            }
 
             // Clean up old versions
             let entries = fs::read_dir(".")
@@ -115,8 +139,8 @@ impl ViewTreeLSPExtension {
             }
         }
 
-        self.cached_binary_path = Some(version_dir);
-        let final_server_path = format!("{}/lib/server.js", self.cached_binary_path.as_ref().unwrap());
+        self.cached_binary_path = Some(source_dir.clone());
+        let final_server_path = format!("{}/lib/server.js", source_dir);
         
         Ok(ViewTreeBinary {
             path: "node".to_string(),
