@@ -66,11 +66,10 @@ impl ViewTreeLSPExtension {
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
         );
 
-        let version = "1.0.0";
-        let source_tarball_url = format!("https://github.com/{}/archive/refs/tags/v{}.tar.gz", VIEW_TREE_LSP_GITHUB_REPO, version);
+        let source_tarball_url = format!("https://github.com/{}/archive/refs/heads/main.tar.gz", VIEW_TREE_LSP_GITHUB_REPO);
 
-        let version_dir = format!("view-tree-lsp-{}", version);
-        let source_dir = format!("{}/lsp-view.tree-{}", version_dir, version);
+        let version_dir = "view-tree-lsp-latest";
+        let source_dir = format!("{}/lsp-view.tree-main", version_dir);
         fs::create_dir_all(&version_dir)
             .map_err(|err| format!("failed to create directory '{version_dir}': {err}"))?;
 
