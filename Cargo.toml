@@ -1,31 +1,10 @@
 [package]
-name = "view-tree-lsp-extension"
-version = "0.1.0"
+name = "view-tree-lsp"
+version = "1.0.0"
 edition = "2021"
-authors = ["Dev-cmyser"]
-description = "View.Tree Language Server extension for Zed editor"
-repository = "https://github.com/dev-cmyser/zed-view.tree-mol-support"
-license = "MIT"
 
 [lib]
 crate-type = ["cdylib"]
 
-
-
 [dependencies]
-zed_extension_api = "0.0.6"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-
-
-
-[profile.release]
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
-opt-level = "z"
-
-[profile.dev]
-debug = true
-opt-level = 0
+zed_extension_api = "0.1.0"
