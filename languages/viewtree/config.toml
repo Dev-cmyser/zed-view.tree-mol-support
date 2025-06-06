@@ -1,0 +1,15 @@
+name = "ViewTree ($mol)"
+grammar = "molviewtree"
+path_suffixes = ["view.tree"]
+line_comments = ["//"]
+language_servers = ["view-tree-lsp"]
+
+[brackets]
+"(" = ")"
+"[" = "]"
+"{" = "}"
+"<" = ">"
+
+[auto_indent]
+tab_size = 1
+hard_tabs = true

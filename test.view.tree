@@ -1,0 +1,58 @@
+$test_app $mol_page
+	title \Test Application
+	body /
+		<= header
+		<= content
+		<= footer
+	
+	header $mol_view
+		dom_name \header
+		attr *
+			class \app-header
+		sub /
+			<= title_text
+	
+	title_text $mol_text
+		text <= app_title
+	
+	content $mol_view
+		dom_name \main
+		sub /
+			<= welcome_message
+			<= button_list
+	
+	welcome_message $mol_text
+		text @\
+			\Welcome to the test application!
+			\This file tests View.Tree LSP features.
+	
+	button_list $mol_list
+		rows /
+			<= action_button
+			<= settings_button
+	
+	action_button $mol_button
+		title \Click Me
+		enabled <= button_enabled
+		click <= handle_click
+	
+	settings_button $mol_button
+		title \Settings
+		enabled true
+		click <= show_settings
+	
+	footer $mol_view
+		dom_name \footer
+		visible <= show_footer
+		attr *
+			class \app-footer
+		sub /
+			<= copyright_text
+	
+	copyright_text $mol_text
+		text \© 2025 Test App
+	
+	# Properties
+	app_title \Test Application Title
+	button_enabled true
+	show_footer <= footer_visible
