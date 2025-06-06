@@ -2,7 +2,7 @@ use zed_extension_api::settings::LspSettings;
 use zed_extension_api::{self as zed, LanguageServerId, Result};
 
 // Constants for the View.Tree LSP
-const LSP_VERSION: &str = "v1.0.1";
+
 const EXECUTABLE_NAME: &str = "lsp";
 
 struct ViewTreeBinary {
@@ -77,7 +77,6 @@ impl ViewTreeLSPExtension {
         );
 
         // Download Go binary release from GitHub
-        let source_tarball_url = "https://github.com/Dev-cmyser/lsp-view.tree/releases/download/v1.0.1/lsp-go-binary.tar.gz".to_string();
 
         zed::set_language_server_installation_status(
             language_server_id,
@@ -108,8 +107,8 @@ impl ViewTreeLSPExtension {
             &zed::LanguageServerInstallationStatus::None,
         );
 
-        // After extraction by Zed, the directory structure is: lsp-go-binary.tar.gz/
-        let source_dir = "lsp-go-binary.tar.gz";
+        // After extraction by Zed, the directory structure is: lsp-go-binary/
+        let source_dir = "lsp-go-binary";
 
         // Create absolute path to the Go binary
         let current_dir =
@@ -129,7 +128,7 @@ impl ViewTreeLSPExtension {
                     std::fs::set_permissions(&final_binary_path, perms)
                         .map_err(|e| format!("Cannot set executable permissions: {}", e))?;
                 }
-                
+
                 // Cache the successful path
                 self.cached_binary_path = Some(source_dir.to_string());
 
