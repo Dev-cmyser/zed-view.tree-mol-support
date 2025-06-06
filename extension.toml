@@ -1,5 +1,5 @@
-id = "view-tree-lsp"
-name = "View.Tree LSP"
+id = "view-tree"
+name = "ViewTree"
 version = "1.0.0"
 schema_version = 1
 authors = ["Dev-cmyser <cmyser@example.com>"]
