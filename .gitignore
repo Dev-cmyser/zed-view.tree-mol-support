@@ -2,4 +2,3 @@ grammars
 target
 lsp-view.tree
 *.wasm
-!extension.wasm

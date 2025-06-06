@@ -58,6 +58,8 @@ impl ViewTreeLSPExtension {
         }
 
         // Download directly from GitHub tag
+        eprintln!("LSP Debug: Starting LSP server download process");
+        
         zed::set_language_server_installation_status(
             language_server_id,
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
@@ -73,6 +75,8 @@ impl ViewTreeLSPExtension {
             "https://github.com/{}/archive/refs/heads/main.tar.gz",
             VIEW_TREE_LSP_GITHUB_REPO
         );
+        
+        eprintln!("LSP Debug: Downloading from URL: {}", source_tarball_url);
 
         zed::download_file(
             &source_tarball_url,
@@ -80,6 +84,8 @@ impl ViewTreeLSPExtension {
             zed::DownloadedFileType::GzipTar,
         )
         .map_err(|err| format!("failed to download source: {err}"))?;
+        
+        eprintln!("LSP Debug: Download completed successfully");
 
         // Debug: Check current working directory and files
         if let Ok(current_dir) = std::env::current_dir() {
