@@ -36,10 +36,9 @@ impl ViewTreeLSPExtension {
             });
         }
 
-        // Check if Node.js is available
-        if worktree.which("node").is_none() {
-            return Err("Node.js is required to run the View.Tree LSP server. Please install Node.js.".into());
-        }
+        // Check if Node.js is available and get its path
+        let node_path = worktree.which("node")
+            .ok_or_else(|| "Node.js is required to run the View.Tree LSP server. Please install Node.js.")?;
 
         // If the server is available as npm package, use that
         if let Some(path) = worktree.which(EXECUTABLE_NAME) {
@@ -54,7 +53,7 @@ impl ViewTreeLSPExtension {
             let server_path = format!("{}/lib/server.js", path);
             if fs::metadata(&server_path).map_or(false, |stat| stat.is_file()) {
                 return Ok(ViewTreeBinary {
-                    path: "node".to_string(),
+                    path: node_path.clone(),
                     args: Some(vec![server_path, "--stdio".to_string()]),
                 });
             }
@@ -117,7 +116,7 @@ impl ViewTreeLSPExtension {
         let final_server_path = format!("{}/lib/server.js", source_dir);
         
         Ok(ViewTreeBinary {
-            path: "node".to_string(),
+            path: node_path,
             args: Some(vec![final_server_path, "--stdio".to_string()]),
         })
     }
