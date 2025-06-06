@@ -60,24 +60,17 @@ impl ViewTreeLSPExtension {
             }
         }
 
-        // Download the server from GitHub releases
+        // Download directly from GitHub tag
         zed::set_language_server_installation_status(
             language_server_id,
             &zed::LanguageServerInstallationStatus::CheckingForUpdate,
         );
-        let release = zed::latest_github_release(
-            VIEW_TREE_LSP_GITHUB_REPO,
-            zed::GithubReleaseOptions {
-                require_assets: true,
-                pre_release: false,
-            },
-        )?;
 
-        // Use source code tarball URL from GitHub
-        let source_tarball_url = format!("https://github.com/{}/archive/refs/tags/v{}.tar.gz", VIEW_TREE_LSP_GITHUB_REPO, release.version);
+        let version = "1.0.0";
+        let source_tarball_url = format!("https://github.com/{}/archive/refs/tags/v{}.tar.gz", VIEW_TREE_LSP_GITHUB_REPO, version);
 
-        let version_dir = format!("view-tree-lsp-{}", release.version);
-        let source_dir = format!("{}/lsp-view.tree-{}", version_dir, release.version);
+        let version_dir = format!("view-tree-lsp-{}", version);
+        let source_dir = format!("{}/lsp-view.tree-{}", version_dir, version);
         fs::create_dir_all(&version_dir)
             .map_err(|err| format!("failed to create directory '{version_dir}': {err}"))?;
 
