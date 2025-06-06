@@ -42,8 +42,17 @@ impl ViewTreeLSPExtension {
         };
         eprintln!("[ViewTree LSP] Using node path: {}", node_path);
 
-        // Try to find the LSP server in common locations
+        // Try to find the LSP server in common absolute locations
         let server_paths = vec![
+            // Specific known location
+            "/Users/cmyser/code/zed-view.tree-mol-support/lsp-view.tree/lib/server.js",
+            // Common development locations
+            "/Users/cmyser/code/lsp-view.tree/lib/server.js",
+            "/Users/cmyser/lsp-view.tree/lib/server.js",
+            // Global npm installation
+            "/usr/local/lib/node_modules/lsp-view-tree/lib/server.js",
+            "/opt/homebrew/lib/node_modules/lsp-view-tree/lib/server.js",
+            // Relative paths as fallback
             "lsp-view.tree/lib/server.js",
             "../lsp-view.tree/lib/server.js",
             "./lsp-view.tree/lib/server.js",
@@ -52,18 +61,33 @@ impl ViewTreeLSPExtension {
         eprintln!("[ViewTree LSP] Trying server paths: {:?}", server_paths);
         for server_path in server_paths {
             eprintln!("[ViewTree LSP] Attempting to use server path: {}", server_path);
-            // Use the found Node.js path
-            return Ok(ViewTreeBinary {
-                path: node_path.clone(),
-                args: Some(vec![server_path.to_string(), "--stdio".to_string()]),
-            });
+            
+            // Check if absolute path exists, or just try relative paths
+            if server_path.starts_with('/') {
+                if std::path::Path::new(server_path).exists() {
+                    eprintln!("[ViewTree LSP] Found server at: {}", server_path);
+                    return Ok(ViewTreeBinary {
+                        path: node_path.clone(),
+                        args: Some(vec![server_path.to_string(), "--stdio".to_string()]),
+                    });
+                } else {
+                    eprintln!("[ViewTree LSP] Server not found at: {}", server_path);
+                    continue;
+                }
+            } else {
+                // For relative paths, just try them (let Node.js handle the error)
+                return Ok(ViewTreeBinary {
+                    path: node_path.clone(),
+                    args: Some(vec![server_path.to_string(), "--stdio".to_string()]),
+                });
+            }
         }
 
-        // Fallback: just try to run with a default path
-        eprintln!("[ViewTree LSP] Using fallback path");
+        // Final fallback
+        eprintln!("[ViewTree LSP] Using final fallback path");
         Ok(ViewTreeBinary {
             path: node_path,
-            args: Some(vec!["lsp-view.tree/lib/server.js".to_string(), "--stdio".to_string()]),
+            args: Some(vec!["/Users/cmyser/code/zed-view.tree-mol-support/lsp-view.tree/lib/server.js".to_string(), "--stdio".to_string()]),
         })
     }
 }
