@@ -1,0 +1,52 @@
+[package]
+name = "view-tree-lsp-server"
+version = "0.1.0"
+edition = "2021"
+authors = ["Dev-cmyser"]
+description = "Language Server for view.tree files in $mol framework"
+repository = "https://github.com/dev-cmyser/zed-view.tree-mol-support"
+license = "MIT"
+
+[[bin]]
+name = "view-tree-lsp"
+path = "src/main.rs"
+
+[dependencies]
+# Main extension library
+view-tree-lsp-extension = { path = ".." }
+
+# LSP Server dependencies
+tower-lsp = "0.20"
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# File system and text processing
+walkdir = "2.0"
+regex = "1.10"
+url = "2.4"
+
+# Utility dependencies
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Async utilities
+tokio-util = { version = "0.7", features = ["io"] }
+futures = "0.3"
+
+[dependencies.lsp-types]
+version = "0.94"
+default-features = false
+features = ["proposed"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+opt-level = "z"
+
+[profile.dev]
+debug = true
+opt-level = 0

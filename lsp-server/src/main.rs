@@ -1,43 +1,51 @@
+#!/usr/bin/env node
+
+//! ViewTree Language Server
+//! 
+//! Language Server Protocol implementation for .view.tree files in $mol framework.
+//! Provides intelligent autocompletion, hover information, and other language features.
+
+use std::env;
+use std::process;
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 
+use tower_lsp::jsonrpc::Result;
+use tower_lsp::{Client, LanguageServer, LspService, Server};
 use lsp_types::{
     CompletionItem, CompletionItemKind, CompletionParams, CompletionResponse,
     DidChangeTextDocumentParams, DidOpenTextDocumentParams, InitializeParams, InitializeResult,
-    InitializedParams, Position, ServerCapabilities, TextDocumentSyncCapability,
-    TextDocumentSyncKind, Url, CompletionOptions,
+    InitializedParams, ServerCapabilities, TextDocumentSyncCapability,
+    TextDocumentSyncKind, CompletionOptions, MessageType,
 };
-use serde::{Deserialize, Serialize};
-use tokio::sync::RwLock;
-use tower_lsp::jsonrpc::Result;
-use tower_lsp::{Client, LanguageServer, LspService, Server};
 use walkdir::WalkDir;
 use regex::Regex;
+use tracing::{info, error, debug};
+use tracing_subscriber::{EnvFilter, fmt};
 
 /// Project data structure for autocompletion
 #[derive(Debug, Clone, Default)]
-pub struct ProjectData {
+struct ProjectData {
     /// Set of discovered components ($my_component, $mol_view)
-    pub components: HashSet<String>,
+    components: HashSet<String>,
     /// Properties for each component
-    pub component_properties: HashMap<String, HashSet<String>>,
+    component_properties: HashMap<String, HashSet<String>>,
 }
 
 /// Main LSP server structure
 #[derive(Debug)]
-pub struct ViewTreeLspServer {
+struct ViewTreeLspServer {
     client: Client,
-    project_data: Arc<RwLock<ProjectData>>,
-    workspace_root: Arc<RwLock<Option<PathBuf>>>,
+    project_data: tokio::sync::RwLock<ProjectData>,
+    workspace_root: tokio::sync::RwLock<Option<PathBuf>>,
 }
 
 impl ViewTreeLspServer {
     pub fn new(client: Client) -> Self {
         Self {
             client,
-            project_data: Arc::new(RwLock::new(ProjectData::default())),
-            workspace_root: Arc::new(RwLock::new(None)),
+            project_data: tokio::sync::RwLock::new(ProjectData::default()),
+            workspace_root: tokio::sync::RwLock::new(None),
         }
     }
 
@@ -48,14 +56,14 @@ impl ViewTreeLspServer {
             Some(path) => path,
             None => {
                 self.client
-                    .log_message(lsp_types::MessageType::WARNING, "No workspace root found")
+                    .log_message(MessageType::WARNING, "No workspace root found")
                     .await;
                 return Ok(());
             }
         };
 
         self.client
-            .log_message(lsp_types::MessageType::INFO, "Starting project scan...")
+            .log_message(MessageType::INFO, "Starting project scan...")
             .await;
 
         let mut data = ProjectData::default();
@@ -84,7 +92,7 @@ impl ViewTreeLspServer {
         
         self.client
             .log_message(
-                lsp_types::MessageType::INFO,
+                MessageType::INFO,
                 format!("Scan complete: {} components, {} components with properties", 
                        components_count, properties_count),
             )
@@ -146,12 +154,7 @@ impl ViewTreeLspServer {
                 }
             }
             Err(err) => {
-                self.client
-                    .log_message(
-                        lsp_types::MessageType::ERROR,
-                        format!("Error reading file {:?}: {}", path, err),
-                    )
-                    .await;
+                debug!("Error reading view.tree file {:?}: {}", path, err);
             }
         }
     }
@@ -371,14 +374,14 @@ impl LanguageServer for ViewTreeLspServer {
 
     async fn initialized(&self, _: InitializedParams) {
         self.client
-            .log_message(lsp_types::MessageType::INFO, "ViewTree LSP server initialized!")
+            .log_message(MessageType::INFO, "ViewTree LSP server initialized!")
             .await;
 
         // Start project scanning
         if let Err(err) = self.scan_project().await {
             self.client
                 .log_message(
-                    lsp_types::MessageType::ERROR,
+                    MessageType::ERROR,
                     format!("Project scan failed: {:?}", err),
                 )
                 .await;
@@ -399,14 +402,9 @@ impl LanguageServer for ViewTreeLspServer {
 
     async fn completion(&self, params: CompletionParams) -> Result<Option<CompletionResponse>> {
         let position = params.text_document_position.position;
-        let uri = &params.text_document_position.text_document.uri;
+        let _uri = &params.text_document_position.text_document.uri;
 
-        self.client
-            .log_message(
-                lsp_types::MessageType::INFO,
-                format!("Completion request at {}:{}", position.line, position.character),
-            )
-            .await;
+        debug!("Completion request at {}:{}", position.line, position.character);
 
         // In a real implementation, you'd need to track document state
         // For this example, we'll create a mock document content
@@ -421,12 +419,7 @@ impl LanguageServer for ViewTreeLspServer {
             let context = self.get_completion_context(line_text, position.character as usize);
             let current_component = self.get_current_component(&mock_lines, current_line);
             
-            self.client
-                .log_message(
-                    lsp_types::MessageType::INFO,
-                    format!("Context: {}, Component: {:?}", context, current_component),
-                )
-                .await;
+            debug!("Context: {}, Component: {:?}", context, current_component);
             
             let items = self.create_completion_items(&context, current_component).await;
             
@@ -437,12 +430,100 @@ impl LanguageServer for ViewTreeLspServer {
     }
 }
 
-/// Create and start the LSP server
-pub async fn start_server() {
+#[tokio::main]
+async fn main() {
+    // Initialize tracing/logging
+    let filter = EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| EnvFilter::new("info"));
+    
+    fmt()
+        .with_env_filter(filter)
+        .with_target(false)
+        .with_thread_ids(true)
+        .with_file(true)
+        .with_line_number(true)
+        .init();
+
+    // Parse command line arguments
+    let args: Vec<String> = env::args().collect();
+    let mut stdio_mode = false;
+    let mut help_requested = false;
+
+    for arg in &args[1..] {
+        match arg.as_str() {
+            "--stdio" => stdio_mode = true,
+            "--help" | "-h" => help_requested = true,
+            "--version" | "-v" => {
+                println!("ViewTree Language Server v{}", env!("CARGO_PKG_VERSION"));
+                return;
+            }
+            _ => {
+                eprintln!("Unknown argument: {}", arg);
+                help_requested = true;
+            }
+        }
+    }
+
+    if help_requested {
+        print_help();
+        return;
+    }
+
+    // Default to stdio mode if no arguments provided
+    if args.len() == 1 {
+        stdio_mode = true;
+    }
+
+    info!("Starting ViewTree Language Server v{}", env!("CARGO_PKG_VERSION"));
+    
+    if stdio_mode {
+        info!("Running in stdio mode");
+        
+        // Start the LSP server
+        if let Err(err) = run_lsp_server().await {
+            error!("LSP server error: {}", err);
+            process::exit(1);
+        }
+    } else {
+        eprintln!("Only stdio mode is currently supported");
+        process::exit(1);
+    }
+}
+
+async fn run_lsp_server() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    info!("Initializing LSP server...");
+    
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
 
     let (service, socket) = LspService::new(|client| ViewTreeLspServer::new(client));
     
     Server::new(stdin, stdout, socket).serve(service).await;
+    
+    info!("LSP server terminated");
+    Ok(())
+}
+
+fn print_help() {
+    println!("ViewTree Language Server v{}", env!("CARGO_PKG_VERSION"));
+    println!();
+    println!("USAGE:");
+    println!("    view-tree-lsp [OPTIONS]");
+    println!();
+    println!("OPTIONS:");
+    println!("    --stdio        Run in stdio mode (default)");
+    println!("    --help, -h     Print this help message");
+    println!("    --version, -v  Print version information");
+    println!();
+    println!("DESCRIPTION:");
+    println!("    Language Server Protocol implementation for .view.tree files");
+    println!("    used in the $mol web framework. Provides intelligent autocompletion,");
+    println!("    hover information, and other language features.");
+    println!();
+    println!("EXAMPLES:");
+    println!("    view-tree-lsp --stdio");
+    println!("    view-tree-lsp");
+    println!();
+    println!("For more information, visit:");
+    println!("    https://github.com/dev-cmyser/zed-view.tree-mol-support");
 }

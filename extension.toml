@@ -10,6 +10,12 @@ repository = "https://github.com/dev-cmyser/zed-tree-mol-support"
 repository = "https://github.com/Dev-cmyser/tree-sitter-mol-view-tree"
 commit = "4796ac4013436acb73c1a36a0537a0b105cd9c2a"
 
-[language_servers.view-tree-lsp-rust]
-name = "view-tree-lsp-rust"
-language = "ViewTree ($mol)"
+[language_servers.view-tree-lsp]
+name = "ViewTree LSP"
+languages = ["ViewTree ($mol)"]
+
+[languages.viewtree]
+name = "ViewTree ($mol)" 
+grammar = "molviewtree"
+path_suffixes = ["tree"]
+language_servers = ["view-tree-lsp"]

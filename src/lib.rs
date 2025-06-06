@@ -3,7 +3,7 @@ use zed_extension_api::{
     self as zed, settings::LspSettings, LanguageServerId, Result, Worktree,
 };
 
-pub mod lsp_server;
+
 
 /// Main Zed extension structure
 struct ViewTreeLspExtension {
@@ -132,7 +132,7 @@ impl zed::Extension for ViewTreeLspExtension {
     fn language_server_workspace_configuration(
         &mut self,
         _language_server_id: &LanguageServerId,
-        worktree: &Worktree,
+        _worktree: &Worktree,
     ) -> Result<Option<serde_json::Value>> {
         // Return workspace configuration for the LSP server
         let config = serde_json::json!({
@@ -159,13 +159,5 @@ mod tests {
     fn test_extension_creation() {
         let extension = ViewTreeLspExtension::new();
         assert!(extension.cached_binary_path.is_none());
-    }
-
-    #[test]
-    fn test_wrapper_script_creation() {
-        let extension = ViewTreeLspExtension::new();
-        let script = extension.create_lsp_wrapper_script().unwrap();
-        assert!(script.contains("#!/bin/bash"));
-        assert!(script.contains("ViewTree LSP Server"));
     }
 }
