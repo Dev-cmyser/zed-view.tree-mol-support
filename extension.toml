@@ -1,6 +1,6 @@
 id = "viewtree"
 name = "ViewTree"
-version = "1.0.1"
+version = "1.0.2"
 schema_version = 1
 authors = ["Dev-cmyser <cmyser@example.com>"]
 description = "Language Server Protocol (LSP) implementation for .view.tree files used in the $mol web framework."
