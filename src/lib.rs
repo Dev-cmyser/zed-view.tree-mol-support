@@ -90,7 +90,7 @@ impl ViewTreeLSPExtension {
 
         // Download Go binary release from GitHub
         let source_tarball_url = format!(
-            "https://github.com/Dev-cmyser/lsp-view.tree/releases/download/v1.2.0/lsp-go-binary.tar.gz",
+            "https://github.com/Dev-cmyser/lsp-view.tree/releases/download/v1.3.1/lsp-go-binary.tar.gz",
         );
 
         eprintln!("LSP Debug: Downloading from URL: {}", source_tarball_url);
