@@ -1,9 +1,7 @@
 ; Local variable scopes
 
 ; Component definitions introduce a scope
-(line
-  (token_chain
-    (component_name) @local.definition))
+(component_name) @local.definition
 
-; Property bindings reference variables
+; Property identifiers as references
 (identifier) @local.reference
