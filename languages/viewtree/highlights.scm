@@ -17,15 +17,21 @@
 (typed_dict) @type.builtin
 
 ; List marker
-(list_marker) @punctuation.bracket
+(list_marker) @keyword
 
 ; Dictionary markers
-(dict_marker) @punctuation.bracket
+(dict_marker) @keyword
 
-; Localized strings (unified token)
+; Property modifiers
+(property_modifier) @operator
+
+; Localized strings - entire node as special
 (localized_string) @string.special
 
-; String literals
+; Localized text (inside @ strings) - also special
+(localized_text) @string.special
+
+; String literals - general rule
 (string_literal) @string
 
 ; Numbers
@@ -36,9 +42,6 @@
 
 ; Null
 (null) @constant.builtin
-
-; Property modifiers (separate tokens)
-(property_modifier) @punctuation.special
 
 ; Plain identifiers (properties, variables)
 (identifier) @variable
