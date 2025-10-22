@@ -13,34 +13,22 @@ impl zed::Extension for ViewTreeExtension {
         _language_server_id: &LanguageServerId,
         worktree: &zed::Worktree,
     ) -> Result<zed::Command> {
-        // Zero-config: require Node in PATH, run server from ../out/server/index.js relative to this crate
-        let node = worktree.which("node").unwrap_or_else(|| "node".to_string());
-
-        let server_js = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("..")
-            .join("..")
-            .join("out")
-            .join("server")
-            .join("index.js");
-        if !server_js.exists() {
-            return Err(format!(
-                "Bundled LSP server not found at {}",
-                server_js.display()
-            ));
+        match worktree.which("view-tree-lsp") {
+            Some(path) => {
+                eprintln!("view.tree LSP: Found view-tree-lsp at {}", path);
+                Ok(zed::Command {
+                    command: path,
+                    args: vec!["--stdio".to_string()],
+                    env: Default::default(),
+                })
+            }
+            None => {
+                eprintln!("view.tree LSP: view-tree-lsp not found in PATH");
+                eprintln!("view.tree LSP: Please install it with: npm install -g view-tree");
+                eprintln!("view.tree LSP: Or link locally: cd path/to/view.tree && npm link");
+                Err("Unable to find view-tree-lsp. Please install it globally with npm.".into())
+            }
         }
-        let server_js_str = server_js.to_string_lossy().to_string();
-
-        eprintln!(
-            "view.tree LSP (Zed): {} {:?}",
-            node,
-            vec![server_js_str.clone(), "--stdio".to_string()]
-        );
-
-        Ok(zed::Command {
-            command: node,
-            args: vec![server_js_str, "--stdio".to_string()],
-            env: Default::default(),
-        })
     }
 }
 
