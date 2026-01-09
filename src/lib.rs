@@ -1,4 +1,3 @@
-use std::process::Command;
 use zed_extension_api as zed;
 use zed_extension_api::{LanguageServerId, Result};
 
@@ -14,32 +13,15 @@ impl ViewTreeExtension {
 
         eprintln!("view.tree LSP: Updating LSP server...");
 
-        match Command::new("npm")
-            .args(&["install", "-g", "--force", "view-tree-lsp@latest"])
-            .output()
-        {
-            Ok(output) => {
-                if output.status.success() {
-                    eprintln!("view.tree LSP: Successfully updated LSP server");
-                    if !output.stdout.is_empty() {
-                        eprintln!("view.tree LSP: {}", String::from_utf8_lossy(&output.stdout));
-                    }
-                } else {
-                    eprintln!(
-                        "view.tree LSP: Update failed with status: {}",
-                        output.status
-                    );
-                    if !output.stderr.is_empty() {
-                        eprintln!("view.tree LSP: {}", String::from_utf8_lossy(&output.stderr));
-                    }
-                }
+        match zed::npm_install_package("view-tree-lsp", "latest") {
+            Ok(()) => {
+                eprintln!("view.tree LSP: Successfully updated LSP server");
+                self.did_update = true;
             }
             Err(e) => {
-                eprintln!("view.tree LSP: Failed to execute npm update: {}", e);
+                eprintln!("view.tree LSP: Failed to install npm package: {}", e);
             }
         }
-
-        self.did_update = true;
     }
 }
 
