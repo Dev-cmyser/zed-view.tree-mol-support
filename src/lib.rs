@@ -19,6 +19,7 @@ impl ViewTreeExtension {
                 self.did_update = true;
             }
             Err(e) => {
+                // TODO: Note that the eprintln will not be visible to users that install the extension, you'd need to write the entire message as an Err instead
                 eprintln!("view.tree LSP: Failed to install npm package: {}", e);
             }
         }
