@@ -1,6 +1,6 @@
 id = "viewtree"
 name = "ViewTree"
-version = "1.0.12"
+version = "1.0.13"
 schema_version = 1
 authors = ["Dev-cmyser <cmyser@example.com>"]
 description = "Language Server Protocol (LSP) implementation for .view.tree files used in the $mol web framework."
@@ -8,7 +8,7 @@ repository = "https://github.com/Dev-cmyser/zed-view.tree-mol-support"
 
 [grammars.viewtree]
 repository = "https://github.com/Dev-cmyser/tree-sitter-viewtree.git"
-rev = "master"
+rev = "97b1fca292f85c384e76d2e1868b63dd5764d2b7"
 
 [language_servers.view-tree]
 name = "View.Tree LSP"
